@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <ctype.h>
+#include <math.h>
 #include "list.h"
 
 //Estrucuturas
@@ -16,6 +17,7 @@ typedef struct
 Node *createNode();
 List *read_file(char *, int);
 void menu();
+float distancia(Node *, Node *);
 
 //main
 int main()
@@ -25,18 +27,18 @@ int main()
   {
     menu();
     scanf("%i", &opcion);
-    List* listaUbicaciones;
+    List *listaUbicaciones;
     int max;
     char nombre_archivo[30];
     switch (opcion)
     {
     case 1:
 
-    printf("Ingrese el nombre del archivo\n");
-    scanf("%s",nombre_archivo);
-    printf("Ingrese la cantidad de datos a leer\n");
-    scanf("%i",&max);
-    listaUbicaciones=read_file("texto.txt",47);
+      printf("Ingrese el nombre del archivo\n");
+      scanf("%s", nombre_archivo);
+      printf("Ingrese la cantidad de datos a leer\n");
+      scanf("%i", &max);
+      listaUbicaciones = read_file("texto.txt", 47);
       break;
     case 2:
       break;
@@ -53,7 +55,7 @@ int main()
     case 8:
       break;
     case 9:
-      printf("Gracias por usar nuestros servicios\n%*cVuelva Pronto\n",10,' ');
+      printf("Gracias por usar nuestros servicios\n%*cVuelva Pronto\n", 10, ' ');
       break;
 
     default:
@@ -95,6 +97,7 @@ List *read_file(char *nombre, int max)
   int cont = 0;
   while (fscanf(file, "%s", leido) != EOF && id <= max)
   {
+    fgetc(file);
     cont++;
     if (cont == 1)
     {
@@ -118,4 +121,13 @@ List *read_file(char *nombre, int max)
 
   fclose(file);
   return lista;
+}
+
+float distancia(Node *cordenada_1, Node *cordena_2)
+{
+  float x = cordena_2->x - cordenada_1->x;
+  float y = cordena_2->y - cordenada_1->y;
+  float distancia = pow(x, 2) + pow(y, 2);
+  distancia = sqrt(distancia);
+  return distancia;
 }
