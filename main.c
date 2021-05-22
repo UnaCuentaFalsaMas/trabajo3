@@ -9,13 +9,14 @@ typedef struct
   int x;
   int y;
 } Node;
-List *read_file();
-Node *createNode();
 
+Node *createNode();
+List *read_file(char*,int);
 int main()
 {
 printf("ingreso\n");
-List* direcciones=read_file();
+
+List* direcciones=read_file("texto.txt",50);
 
     return 0;
 }
@@ -27,16 +28,16 @@ Node *createNode()
 }
 
 
-List *read_file()
+List *read_file(char* nombre, int max)
 {
   List *lista = create_list();
   Node *n = createNode();
-  FILE *file = fopen("texto.txt", "r");
+  FILE *file = fopen(nombre, "r");
   int num;
   char leido[10];
   int id = 1;
   int cont = 0;
-  while (fscanf(file, "%s", leido) != EOF)
+  while (fscanf(file, "%s", leido) != EOF && id<=max)
   {
     cont++;
     if (cont == 1)
