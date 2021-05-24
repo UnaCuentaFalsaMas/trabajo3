@@ -4,20 +4,59 @@
 #include <ctype.h>
 #include <math.h>
 #include "list.h"
+#include "Map.h"
 
-//Estrucuturas
+//Estructuras
 typedef struct
 {
   int id;
   int x;
   int y;
-} Node;
+  float distancia;
+}Node;
+
+typedef struct
+{
+  float total_recorrido;
+  Map *repartos_restantes;
+}Estado;
 
 //Funciones
 Node *createNode();
-List *read_file(char *, int);
+Map *read_file(char *, int);
 void menu();
-float distancia(Node *, Node *);
+float calculo_distancia(Node *, Node *);
+void distancia_entregas(Map*);
+void crearRuta(Map*, int);
+void mostrar_distancias(Map*, Node*); //Muestras las distancias de los puntos en el mapa con respecto al nodo apuntado
+
+//Función para comparar claves de tipo int. Retorna 1 si son iguales
+int is_equal_int(void * key1, void * key2) {
+    if(*(int*)key1 == *(int*)key2) return 1;
+    return 0;
+}
+
+int is_equal_float(void * key1, void * key2) {
+    if(*(float*)key1 == *(float*)key2) return 1;
+    return 0;
+}
+
+//Función para comparar claves de tipo int. Retorna 1 si key1 < key2
+int lower_than_int(void * key1, void * key2) {
+    if(*(int*)key1 < *(int*)key2) return 1;
+    return 0;
+}
+
+int lower_than_float(void * key1, void * key2) {
+    if(*(float*)key1 < *(float*)key2) return 1;
+    return 0;
+}
+
+//Función para comparar claves de tipo int. Retorna 1 si key1 > key2
+int greater_than_int(void * key1, void * key2) {
+    if(*(int*)key1 > *(int*)key2) return 1;
+    return 0;
+}
 
 //main
 int main()
@@ -27,7 +66,7 @@ int main()
   {
     menu();
     scanf("%i", &opcion);
-    List *listaUbicaciones;
+    Map *mapaUbicaciones;
     int max;
     char nombre_archivo[30];
     switch (opcion)
@@ -38,13 +77,22 @@ int main()
       scanf("%s", nombre_archivo);
       printf("Ingrese la cantidad de datos a leer\n");
       scanf("%i", &max);
-      listaUbicaciones = read_file("texto.txt", 47);
+      mapaUbicaciones = read_file(nombre_archivo, max);
+
+      Node *aux = firstMap(mapaUbicaciones);
+      while (aux){
+      //printf("%d %d %d\n", aux->id, aux->x, aux->y);
+      aux = nextMap(mapaUbicaciones);
+      }
+
       break;
     case 2:
+      distancia_entregas(mapaUbicaciones);
       break;
     case 3:
       break;
     case 4:
+      crearRuta(mapaUbicaciones, max);
       break;
     case 5:
       break;
@@ -69,15 +117,15 @@ int main()
 
 void menu()
 {
-  printf("1.- Importar archivo\n");
-  printf("2.- Distancia entre entregas\n");
-  printf("3.- Mostrar 5 entregas mas cercanas\n");
-  printf("4.- Crear ruta\n");
-  printf("5.- Generar ruta aleatoria\n");
-  printf("6.- Mejorar ruta\n");
-  printf("7.- Mostrar rutas\n");
-  printf("8.- Mejor ruta\n");
-  printf("9.- Salir\n");
+  printf("1. Importar archivo\n");
+  printf("2. Distancia entre entregas\n");
+  printf("3. Mostrar 5 entregas mas cercanas\n");
+  printf("4. Crear ruta\n");
+  printf("5. Generar ruta aleatoria\n");
+  printf("6. Mejorar ruta\n");
+  printf("7. Mostrar rutas\n");
+  printf("8. Mejor ruta\n");
+  printf("9. Salir\n");
 }
 
 Node *createNode()
@@ -86,44 +134,140 @@ Node *createNode()
   return n;
 }
 
-List *read_file(char *nombre, int max)
+//Función 1: Lee n coordenadas de entregas desde un archivo
+Map *read_file(char *nombre, int max)
 {
-  List *lista = create_list();
-  Node *n = createNode();
+  Map *mapa = createMap(is_equal_int);
+  setSortFunction(mapa, lower_than_int);
+  Node *n;
   FILE *file = fopen(nombre, "r");
   int num;
-  char leido[10];
+  char lectura[10];
   int id = 1;
   int cont = 0;
-  while (fscanf(file, "%s", leido) != EOF && id <= max)
+  while (fscanf(file, "%s", lectura) != EOF && id <= max)
   {
     fgetc(file);
-    cont++;
-    if (cont == 1)
+    num = atoi(lectura);
+    //printf("%d\n", num);
+
+    if (cont == 0)
     {
-      Node *n = createNode();
+      n = createNode();
       n->id = id;
-      printf("%i ", id);
-      num = atoi(leido);
-      printf("%i ", num);
       n->x = num;
+      cont++;
     }
     else
     {
-      cont = 0;
-      num = atoi(leido);
-      n->y = num;
-      printf("%i\n ", num);
+      n->y = num;;
       id++;
-      push_back(lista, n);
+      cont = 0;
+      insertMap(mapa, &n->id, n);
     }
   }
-
   fclose(file);
-  return lista;
+  return mapa;
 }
 
-float distancia(Node *cordenada_1, Node *cordena_2)
+//Función 2: Entrega la distancia entre dos entregas dispuestas por el usuario
+void distancia_entregas(Map* mapa_local){
+  int id;
+  float distancia;
+  Node *aux1, *aux2;
+
+  printf("Ingrese la ID de la entrega 1: ");
+  scanf("%d", &id);
+  aux1 = searchMap(mapa_local, &id);
+
+  printf("Ingrese la ID de la entrega 2: ");
+  scanf("%d", &id);
+  aux2 = searchMap(mapa_local, &id);
+
+  distancia = calculo_distancia(aux1, aux2);
+  printf("La distancia entre la entrega %d y la entrega %d es de %0.f m.\n", aux1->id, aux2->id, distancia);
+  printf("----------------------------------\n");
+}
+
+//Función 4: Crea un ruta según lo que disponga el usuario y la guarda con un nombre
+void crearRuta(Map *mapa_original, int max){
+  Estado estado_actual;
+  Node *nodo_inicial = createNode(), *aux, *nodo_siguiente;
+  int id;
+
+  nodo_inicial->id = 0;
+  printf("Ingrese su ubicacion (x, y)\n");
+  printf("x: ");
+  scanf("%d", &nodo_inicial->x);
+  printf("y: ");
+  scanf("%d", &nodo_inicial->y);
+
+  insertMap(mapa_original, &nodo_inicial->id, nodo_inicial);
+  //printf("ID: %d | (%d, %d)\n", nodo_inicial->id, nodo_inicial->x, nodo_inicial->y);
+  printf("%d entregas en total\n", max);
+  printf("----------------------------------\n");
+
+  Map *mapa_local = mapa_original;
+  
+  mostrar_distancias(mapa_local, nodo_inicial);
+
+  estado_actual.repartos_restantes = mapa_local;
+  estado_actual.total_recorrido = 0;
+
+  for (int i = 0; i < max; i++)
+  {
+    printf("Ingrese su proxima parada: ");
+    scanf("%d", &id);
+    
+    aux = searchMap(mapa_local, &id);
+    if (aux == NULL) break;
+    else eraseMap(mapa_local, &id);
+
+    estado_actual.total_recorrido += aux->distancia;
+    estado_actual.repartos_restantes = mapa_local;
+    mostrar_distancias(mapa_local, aux);
+
+  }
+  printf("----------------------------------\n");
+  printf("Todas las ciudades visitadas\n");
+  printf("Distancia final recorrida: %0.f metros\n", estado_actual.total_recorrido);
+  printf("----------------------------------\n");
+
+}
+
+void mostrar_distancias(Map *mapa_local, Node *nodo_referencia){
+  Node *aux;
+  Map *mapa_distancias = createMap(is_equal_int);
+  setSortFunction(mapa_distancias, lower_than_int);
+
+  //Se guardan las distancias en un mapa que guarda las distancias en orden
+  aux = firstMap(mapa_local);
+  while(aux){
+    if (aux->id == 0){
+      aux = nextMap(mapa_local);
+      continue;
+    }
+    aux->distancia = trunc(calculo_distancia(nodo_referencia, aux));
+    insertMap(mapa_distancias, &aux->distancia, aux);
+    //printf("ID: %d | (%d, %d) | %0.f metros\n", aux->id, aux->x, aux->y, aux->distancia);
+    aux = nextMap(mapa_local);
+  }
+
+  if (!firstMap(mapa_distancias)) return;
+  else printf("Distancias:\n");
+
+  //Se muestran las distancias en orden
+  aux = firstMap(mapa_distancias);
+  while(aux){
+    printf("ID: %d | (%d, %d) | %0.f m.\n", aux->id, aux->x, aux->y, aux->distancia);
+    aux = nextMap(mapa_distancias);
+  }
+  printf("----------------------------------\n");
+
+  return;
+}
+
+float calculo_distancia(Node *cordenada_1, Node *cordena_2)
 {
   float x = cordena_2->x - cordenada_1->x;
   float y = cordena_2->y - cordenada_1->y;
