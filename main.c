@@ -18,7 +18,7 @@ typedef struct
 typedef struct
 {
   float total_recorrido;
-  Map *repartos_restantes;
+  List *ruta;
 }Estado;
 
 //Funciones
@@ -27,7 +27,7 @@ Map *read_file(char *, int);
 void menu();
 float calculo_distancia(Node *, Node *);
 void distancia_entregas(Map*);
-void crearRuta(Map*, int);
+void crearRuta(Map*, int, Map*);
 void mostrar_distancias(Map*, Node*); //Muestras las distancias de los puntos en el mapa con respecto al nodo apuntado
 
 //Función para comparar claves de tipo int. Retorna 1 si son iguales
@@ -58,16 +58,27 @@ int greater_than_int(void * key1, void * key2) {
     return 0;
 }
 
+int is_equal_string(void * key1, void * key2) {
+    if(strcmp((char*)key1, (char*)key2)==0) return 1;
+    return 0;
+}
+
+int lower_than_string(void * key1, void * key2) {
+    if(strcmp((char*)key1, (char*)key2) < 0) return 1;
+    return 0;
+}
+
 //main
-int main()
-{
+int main(){
+  Map *mapaUbicaciones;
+  Map* estados = createMap(is_equal_string);
+  setSortFunction(estados, lower_than_string);
+  int max;
   int opcion;
   do
   {
     menu();
     scanf("%i", &opcion);
-    Map *mapaUbicaciones;
-    int max;
     char nombre_archivo[30];
     switch (opcion)
     {
@@ -92,7 +103,7 @@ int main()
     case 3:
       break;
     case 4:
-      crearRuta(mapaUbicaciones, max);
+      crearRuta(mapaUbicaciones, max, estados);
       break;
     case 5:
       break;
@@ -190,9 +201,9 @@ void distancia_entregas(Map* mapa_local){
 }
 
 //Función 4: Crea un ruta según lo que disponga el usuario y la guarda con un nombre
-void crearRuta(Map *mapa_original, int max){
+void crearRuta(Map *mapa_original, int max, Map* estados){
   Estado estado_actual;
-  Node *nodo_inicial = createNode(), *aux, *nodo_siguiente;
+  Node *nodo_inicial = createNode(), *aux;
   int id;
 
   nodo_inicial->id = 0;
@@ -211,7 +222,7 @@ void crearRuta(Map *mapa_original, int max){
   
   mostrar_distancias(mapa_local, nodo_inicial);
 
-  estado_actual.repartos_restantes = mapa_local;
+  estado_actual.ruta = create_list();
   estado_actual.total_recorrido = 0;
 
   for (int i = 0; i < max; i++)
@@ -223,16 +234,25 @@ void crearRuta(Map *mapa_original, int max){
     if (aux == NULL) break;
     else eraseMap(mapa_local, &id);
 
+    push_back(estado_actual.ruta, &id);
     estado_actual.total_recorrido += aux->distancia;
-    estado_actual.repartos_restantes = mapa_local;
+
     mostrar_distancias(mapa_local, aux);
 
   }
   printf("----------------------------------\n");
   printf("Todas las ciudades visitadas\n");
   printf("Distancia final recorrida: %0.f metros\n", estado_actual.total_recorrido);
+
+  printf("Ingrese el nombre de la ruta creada: ");
+  char nombre_ruta[30];
+  getchar();
+  scanf("%[^\n]s", nombre_ruta);
+  //printf("%s\n", nombre_ruta);
   printf("----------------------------------\n");
 
+  /* Se guarda en el mapa "estados" el dato "estado_actual" de tipo Estado con clase nombre_ruta   */
+  insertMap(estados, nombre_ruta, &estado_actual);
 }
 
 void mostrar_distancias(Map *mapa_local, Node *nodo_referencia){
