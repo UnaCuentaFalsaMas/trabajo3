@@ -29,6 +29,7 @@ float calculo_distancia(Node *, Node *);
 void distancia_entregas(Map*);
 void crearRuta(Map*, int, Map*);
 void mostrar_distancias(Map*, Node*); //Muestras las distancias de los puntos en el mapa con respecto al nodo apuntado
+void entregas_cercanas(Map*);//Muestra las entregas cercanas respecto a coordenadas
 
 //Función para comparar claves de tipo int. Retorna 1 si son iguales
 int is_equal_int(void * key1, void * key2) {
@@ -89,18 +90,20 @@ int main(){
       printf("Ingrese la cantidad de datos a leer\n");
       scanf("%i", &max);
       mapaUbicaciones = read_file(nombre_archivo, max);
-
+      /*
       Node *aux = firstMap(mapaUbicaciones);
       while (aux){
-      //printf("%d %d %d\n", aux->id, aux->x, aux->y);
+      printf("%d %d %d\n", aux->id, aux->x, aux->y);
       aux = nextMap(mapaUbicaciones);
       }
+      */
 
       break;
     case 2:
       distancia_entregas(mapaUbicaciones);
       break;
     case 3:
+      entregas_cercanas(mapaUbicaciones);
       break;
     case 4:
       crearRuta(mapaUbicaciones, max, estados);
@@ -130,7 +133,7 @@ void menu()
 {
   printf("1. Importar archivo\n");
   printf("2. Distancia entre entregas\n");
-  printf("3. Mostrar 5 entregas mas cercanas\n");
+  printf("3. Mostrar 3 entregas mas cercanas\n");
   printf("4. Crear ruta\n");
   printf("5. Generar ruta aleatoria\n");
   printf("6. Mejorar ruta\n");
@@ -253,6 +256,7 @@ void crearRuta(Map *mapa_original, int max, Map* estados){
 
   /* Se guarda en el mapa "estados" el dato "estado_actual" de tipo Estado con clase nombre_ruta   */
   insertMap(estados, nombre_ruta, &estado_actual);
+
 }
 
 void mostrar_distancias(Map *mapa_local, Node *nodo_referencia){
@@ -287,11 +291,55 @@ void mostrar_distancias(Map *mapa_local, Node *nodo_referencia){
   return;
 }
 
-float calculo_distancia(Node *cordenada_1, Node *cordena_2)
-{
+float calculo_distancia(Node *cordenada_1, Node *cordena_2){
   float x = cordena_2->x - cordenada_1->x;
   float y = cordena_2->y - cordenada_1->y;
   float distancia = pow(x, 2) + pow(y, 2);
   distancia = sqrt(distancia);
   return distancia;
+}
+
+//Funcion 3: Muestra 3 entregas mas cercanas respecto a coordenadas
+void entregas_cercanas(Map *mapa_original){
+  Node *nodo = createNode();
+  printf("Ingrese su ubicacion (x,y)\n");
+  printf("Escriba la coordenada x:\n");
+  scanf("%i", &nodo->x);
+  printf("Escriba la coordenada y:\n");
+  scanf("%i", &nodo->y);
+
+  Node *aux;
+  Map *mapa_distancias = createMap(is_equal_int);
+  setSortFunction(mapa_distancias, lower_than_int);
+
+  //Se guardan las distancias en un mapa que guarda las distancias en orden
+  aux = firstMap(mapa_original);
+  while(aux){
+    if (aux->id == 0){
+      aux = nextMap(mapa_original);
+      continue;
+    }
+    aux->distancia = trunc(calculo_distancia(nodo, aux));
+    insertMap(mapa_distancias, &aux->distancia, aux);
+    //printf("ID: %d | (%d, %d) | %0.f metros\n", aux->id, aux->x, aux->y, aux->distancia);
+    aux = nextMap(mapa_original);
+  }
+
+  if (!firstMap(mapa_distancias)) return;
+  else printf("Entregas ordenadas desde la mas cercana a la mas lejana:\n");
+
+  //Se muestran las distancias en orden
+  aux = firstMap(mapa_distancias);
+  int cont = 0;
+  while(aux && cont<3){
+    printf("ID: %d | (%d, %d) | %0.f m.\n", aux->id, aux->x, aux->y, aux->distancia);
+    aux = nextMap(mapa_distancias);
+    cont++;
+  }
+  printf("----------------------------------\n");
+
+  if(cont!=3){
+    printf("Solo habian %i entregas en la base de datos\n", cont);
+  }
+
 }
