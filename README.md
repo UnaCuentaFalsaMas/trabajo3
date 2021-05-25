@@ -6,7 +6,7 @@ Funciones y detalles:
 
 2: // FUNCIÓN HECHA //
 
-3: -- SIN HACER --
+3: // FUNCIÓN HECHA //
 
 4: Falta guardar la ruta con un nombre
 
