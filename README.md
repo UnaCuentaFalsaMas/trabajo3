@@ -10,7 +10,7 @@ Funciones y detalles:
 
 4: Falta guardar la ruta con un nombre
 
-5: -- SIN HACER --
+5: // FUNCIÓN HECHA // 
 
 6: -- SIN HACER --
 

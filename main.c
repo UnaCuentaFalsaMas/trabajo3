@@ -3,6 +3,7 @@
 #include <string.h>
 #include <ctype.h>
 #include <math.h>
+#include <time.h>
 #include "list.h"
 #include "Map.h"
 
@@ -30,6 +31,7 @@ void distancia_entregas(Map*);
 void crearRuta(Map*, int, Map*);
 void mostrar_distancias(Map*, Node*); //Muestras las distancias de los puntos en el mapa con respecto al nodo apuntado
 void entregas_cercanas(Map*);//Muestra las entregas cercanas respecto a coordenadas
+void rutaaleatoria(Map *, int , Map* );
 
 //Función para comparar claves de tipo int. Retorna 1 si son iguales
 int is_equal_int(void * key1, void * key2) {
@@ -109,6 +111,7 @@ int main(){
       crearRuta(mapaUbicaciones, max, estados);
       break;
     case 5:
+      rutaaleatoria(mapaUbicaciones,max,estados);
       break;
     case 6:
       break;
@@ -201,6 +204,53 @@ void distancia_entregas(Map* mapa_local){
   distancia = calculo_distancia(aux1, aux2);
   printf("La distancia entre la entrega %d y la entrega %d es de %0.f m.\n", aux1->id, aux2->id, distancia);
   printf("----------------------------------\n");
+}
+
+void rutaaleatoria(Map *mapa_original, int max, Map* estados){
+  int i,id,bool;
+
+  Node* aux=createNode();
+  Node* p=createNode();
+  srand(time(NULL));
+  Estado aleatorio;
+  aleatorio.ruta=create_list();
+
+  for(i=0;i<max;i++){
+    if(i>0){
+      id=rand()%max+1;
+      p=first(aleatorio.ruta);
+      while(p){
+        bool=0;
+        if(p->id==id){
+          id=rand()%max+1;
+          p=first(aleatorio.ruta);
+          bool=1;
+        }
+        if(bool!=1){
+          p=next(aleatorio.ruta);
+        }
+      }
+    }else{ 
+    id=rand()%max+1;
+    }    
+
+    aux=searchMap(mapa_original, &id);
+    aleatorio.total_recorrido += aux->distancia;
+    push_back(aleatorio.ruta,aux);
+  }
+
+  printf("\n\nIngrese el nombre de la ruta creada: ");
+  char nombre_ruta[30];
+  getchar();
+  scanf("%[^\n]s", nombre_ruta);
+  printf("\n\n----------------------------------\n\n");
+
+  insertMap(estados, nombre_ruta, &aleatorio);
+  /*p=first(aleatorio.ruta);
+  for(i=0;i<max;i++){
+    printf("%d-",p->id);
+    p=next(aleatorio.ruta);
+  }*/
 }
 
 //Función 4: Crea un ruta según lo que disponga el usuario y la guarda con un nombre
