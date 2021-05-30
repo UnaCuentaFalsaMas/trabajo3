@@ -33,6 +33,7 @@ void rutaaleatoria(Map *, int, Map *);
 Node *createNode();
 void menu();
 float calculo_distancia(Node *, Node *);
+Map *pasar_mapa(Map*);
 void mostrar_distancias(Map *, Node *); //Muestras las distancias de los puntos en el mapa con respecto al nodo apuntado
 int is_equal_int(void *, void *);
 int is_equal_float(void *, void *);
@@ -231,7 +232,7 @@ void crearRuta(Map *mapa_original, int max, Map *estados)
     printf("%d entregas en total\n", max);
     printf("----------------------------------\n");
 
-    Map *mapa_local = mapa_original;
+    Map *mapa_local = pasar_mapa(mapa_original);
 
     mostrar_distancias(mapa_local, nodo_inicial);
 
@@ -244,13 +245,15 @@ void crearRuta(Map *mapa_original, int max, Map *estados)
         scanf("%d", &id);
 
         aux = searchMap(mapa_local, &id);
-        if (aux == NULL)
-            break;
-        else
+        if (aux == NULL){
+            printf("Ingrese una parada valida\n");
+            i--;
+            continue;
+        }else{
             eraseMap(mapa_local, &id);
-
-        push_back(estado_actual.ruta, &id);
-        estado_actual.total_recorrido += aux->distancia;
+            push_back(estado_actual.ruta, &id);
+            estado_actual.total_recorrido += aux->distancia;
+        }
 
         mostrar_distancias(mapa_local, aux);
     }
@@ -389,6 +392,22 @@ float calculo_distancia(Node *cordenada_1, Node *cordena_2)
     float distancia = pow(x, 2) + pow(y, 2);
     distancia = sqrt(distancia);
     return distancia;
+}
+
+Map *pasar_mapa(Map* mapa_original){
+  Map *estados = createMap(is_equal_int);
+  Node *aux2 = createNode();
+  Node *aux = firstMap(mapa_original);
+  while (aux)
+  {
+    aux2->x = aux->x;
+    aux2->y = aux->y;
+    aux2->id = aux->id;
+    insertMap(estados,&aux2->id,aux2);
+    aux2 = createNode();
+    aux = nextMap(mapa_original);
+  }
+  return estados;
 }
 
 //Función para comparar claves de tipo int. Retorna 1 si son iguales
