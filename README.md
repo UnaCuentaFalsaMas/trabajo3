@@ -8,12 +8,12 @@ Funciones y detalles:
 
 3: // FUNCIÓN HECHA //
 
-4: Falta guardar la ruta con un nombre
+4: // FUNCIÓN HECHA // 
 
-5: // FUNCIÓN HECHA // 
+5: Falta parchear
 
 6: -- SIN HACER --
 
-7: -- SIN HACER --
+7: // FUNCIÓN HECHA // 
 
 8: -- SIN HACER --
