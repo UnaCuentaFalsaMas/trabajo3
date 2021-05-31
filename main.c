@@ -24,12 +24,13 @@ typedef struct
 } Estado;
 
 //Funciones del Menu
-Map *read_file(char *, int);    //1
-void distancia_entregas(Map *); //2
-void entregas_cercanas(Map *);  //Muestra las entregas cercanas respecto a coordenadas
-void crearRuta(Map *, int, Map *);
-void ruta_aleatoria(Map *, int, Map *);
-void mostrar_rutas(Map*, int);
+Map *read_file(char *, int);            //1
+void distancia_entregas(Map *);         //2
+void entregas_cercanas(Map *);          //3
+void crearRuta(Map *, int, Map *);      //4
+void ruta_aleatoria(Map *, int, Map *); //5
+void mejorar_ruta(Map *, int, Map *);   //6
+void mostrar_rutas(Map*, int);          //7
 
 //Funciones auxiliares
 Node *createNode();
@@ -97,6 +98,7 @@ int main()
             ruta_aleatoria(mapaUbicaciones, max, estados);
             break;
         case 6:
+            mejorar_ruta(mapaUbicaciones, max, estados);
             break;
         case 7:
             mostrar_rutas(estados, max);
@@ -173,7 +175,7 @@ void distancia_entregas(Map *mapa_local)
     printf("----------------------------------\n");
 }
 
-//Funcion 3: Muestra 3 entregas mas cercanas respecto a coordenadas
+//Funcion 3: Muestra 3 entregas más cercanas respecto a coordenadas
 void entregas_cercanas(Map *mapa_original)
 {
     Node *nodo = createNode();
@@ -306,9 +308,9 @@ void ruta_aleatoria(Map *mapa_original, int max, Map *estados)
     int i,j,id,bool;
  
     Node* aux = createNode();
-    srand(time(NULL));
     Estado *aleatorio=(Estado *) malloc (sizeof(Estado) * 1000);
     aleatorio->ruta=(int*) malloc(sizeof(int) * max);
+    srand(time(NULL));
     int arreglo [max+1];
     
     for(j=0;j<=max;j++){
@@ -367,11 +369,105 @@ void ruta_aleatoria(Map *mapa_original, int max, Map *estados)
 }
 
 //Función 6: Se carga el mapa de las rutas por nombre. El usuario elige si hacer un intercambio manual o automático entre 2 entregas.
+void mejorar_ruta(Map *mapa_original, int max, Map *estados){
+    int opcion, aux, id1, id2, i, j = -1, k = -1;
+    Estado *estado_mejorado = (Estado *) malloc (sizeof(Estado) * 1000);; //La copia es para no alterar la ruta original, en caso de que la ruta alterada sea peor que la original
+    estado_mejorado->ruta=(int*) malloc(sizeof(int) * max);
+    srand(time(NULL));
+
+    getchar();
+    printf("----------------------------------\n");
+    printf("Ingrese el nombre de la ruta a mejorar: ");
+    scanf("%[^\n]s", estado_mejorado->nombre);
+    Estado *estado_a_mejorar = searchMap(estados, estado_mejorado->nombre);
+    //printf("%s\n", lectura);
+
+    printf("--------------- RUTA --------------\n");
+    
+
+    for (i = 0; i < max; i++){
+        estado_mejorado->ruta[i] = estado_a_mejorar->ruta[i];
+    }
+
+    for (i = 0; i < max; i++){
+        printf("%d", estado_mejorado->ruta[i]);
+        if (i + 1 < max) printf(" - ");
+    }
+    printf("\n");
+    printf("----------------------------------\n");
+    printf("Ajuste automatico (1) / Ajuste manual (2): ");
+    scanf("%d", &opcion);
+    if (opcion == 2){
+        printf("Ingrese la primera ID a intercambiar: ");
+        scanf("%d", &id1);
+
+        printf("Ingrese la segunda ID a intercambiar: ");
+        scanf("%d", &id2);
+    }
+    else{
+        id1 = rand()%max + 1;
+        do{
+            id2 = rand()%max + 1;
+        }while (id1 == id2);
+
+        printf("Se intercambiaran los ordenes de la entrega %d y la entrega %d.\n", id1, id2);
+    }
+
+    /*
+    if (id1 < id2){
+        aux = id1;
+        id1 = id2;
+        id2 = aux;
+    }
+    */
+
+    for (int i = 0; i < max; i++){
+        if (estado_mejorado->ruta[i] == id1){
+            j = i;
+            break;
+        }
+    }
+
+    for (int i = 0; i < max; i++){
+        if (estado_mejorado->ruta[i] == id2){
+            k = i;
+            break;
+        }
+    }
+
+    aux = estado_mejorado->ruta[j];
+    estado_mejorado->ruta[j] = estado_mejorado->ruta[k];
+    estado_mejorado->ruta[k] = aux;
+
+    estado_mejorado->total_recorrido = 0;
+    estado_mejorado->total_recorrido += calculo_distancia(firstMap(mapa_original), searchMap(mapa_original, &estado_mejorado->ruta[0]));
+    
+    for (i = 0; i < max - 1; i++){
+        estado_mejorado->total_recorrido += calculo_distancia(searchMap(mapa_original, &estado_mejorado->ruta[i]), searchMap(mapa_original, &estado_mejorado->ruta[i + 1]));
+    }
+    estado_mejorado->total_recorrido += calculo_distancia(searchMap(mapa_original, &estado_mejorado->ruta[max - 1]), firstMap(mapa_original));
+
+    for (int i = 0; i < max; i++){
+        printf("%d", estado_mejorado->ruta[i]);
+        if (i + 1 < max) printf(" - ");
+    }
+    printf("\nDistancia recorrida en ruta mejorada: %0.f metros\n", estado_mejorado->total_recorrido);
+
+    if (estado_mejorado->total_recorrido < estado_a_mejorar->total_recorrido){
+        eraseMap(estados, estado_mejorado->nombre);
+        insertMap(estados, estado_mejorado->nombre, estado_mejorado);
+        printf("La ruta fue mejorada exitosamente. Los cambios fueron aplicados.\n");
+    }
+    else{
+        printf("La ruta mejorada es peor que la anterior. Los cambios fueron revertidos.\n");
+    }
+    
+}
 
 //Función 7: Se muestran las rutas guardadas de la mejor a la peor.
 void mostrar_rutas(Map* rutas_original, int max){
     Map *rutas_orden_local = createMap(is_equal_float);
-    setSortFunction(rutas_original, lower_than_float);
+    setSortFunction(rutas_orden_local, lower_than_float);
 
     Estado *aux;
 
