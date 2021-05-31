@@ -10,7 +10,7 @@ Funciones y detalles:
 
 4: // FUNCIÓN HECHA // 
 
-5: Falta parchear
+5: // FUNCIÓN HECHA // 
 
 6: -- SIN HACER --
 
