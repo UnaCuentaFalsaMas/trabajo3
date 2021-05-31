@@ -19,7 +19,8 @@ typedef struct
 typedef struct
 {
     float total_recorrido;
-    List *ruta;
+    int *ruta;
+    char nombre[30];
 } Estado;
 
 //Funciones del Menu
@@ -28,6 +29,7 @@ void distancia_entregas(Map *); //2
 void entregas_cercanas(Map *);  //Muestra las entregas cercanas respecto a coordenadas
 void crearRuta(Map *, int, Map *);
 void rutaaleatoria(Map *, int, Map *);
+void mostrar_rutas(Map*, int);
 
 //Funciones auxiliares
 Node *createNode();
@@ -42,6 +44,7 @@ int lower_than_int(void *, void *);
 int lower_than_float(void *, void *);
 int lower_than_string(void *, void *);
 int greater_than_int(void *, void *);
+int greater_than_float(void *, void *);
 
 //main
 int main()
@@ -82,6 +85,13 @@ int main()
             break;
         case 4:
             crearRuta(mapaUbicaciones, max, estados);
+            /*
+            Node *aux = firstMap(mapaUbicaciones);
+            while (aux){
+            printf("%d %d %d\n", aux->id, aux->x, aux->y);
+            aux = nextMap(mapaUbicaciones);
+            }
+            */
             break;
         case 5:
             rutaaleatoria(mapaUbicaciones, max, estados);
@@ -89,6 +99,7 @@ int main()
         case 6:
             break;
         case 7:
+            mostrar_rutas(estados, max);
             break;
         case 8:
             break;
@@ -216,8 +227,11 @@ void entregas_cercanas(Map *mapa_original)
 //Función 4: Crea un ruta según lo que disponga el usuario y la guarda con un nombre
 void crearRuta(Map *mapa_original, int max, Map *estados)
 {
-    Estado estado_actual;
+    Estado *estado_actual = (Estado *) malloc (sizeof(Estado) * 1000);
+    estado_actual->ruta = (int*) malloc(sizeof(int) * max);
+    estado_actual->total_recorrido = 0;
     Node *nodo_inicial = createNode(), *aux;
+    Map *mapa_local = pasar_mapa(mapa_original);
     int id;
 
     nodo_inicial->id = 0;
@@ -232,12 +246,7 @@ void crearRuta(Map *mapa_original, int max, Map *estados)
     printf("%d entregas en total\n", max);
     printf("----------------------------------\n");
 
-    Map *mapa_local = pasar_mapa(mapa_original);
-
     mostrar_distancias(mapa_local, nodo_inicial);
-
-    estado_actual.ruta = create_list();
-    estado_actual.total_recorrido = 0;
 
     for (int i = 0; i < max; i++)
     {
@@ -246,30 +255,49 @@ void crearRuta(Map *mapa_original, int max, Map *estados)
 
         aux = searchMap(mapa_local, &id);
         if (aux == NULL){
-            printf("Ingrese una parada valida\n");
+            printf("Ingrese una parada valida.\n");
             i--;
             continue;
         }else{
             eraseMap(mapa_local, &id);
-            push_back(estado_actual.ruta, &id);
-            estado_actual.total_recorrido += aux->distancia;
+            estado_actual->ruta[i] = id;
+            estado_actual->total_recorrido += aux->distancia;
         }
 
         mostrar_distancias(mapa_local, aux);
+        //printf("%d\n", aux->id);
     }
     printf("----------------------------------\n");
-    printf("Todas las ciudades visitadas\n");
-    printf("Distancia final recorrida: %0.f metros\n", estado_actual.total_recorrido);
+    printf("Todas las ciudades visitadas. Volviendo al punto de origen.\n");
+    estado_actual->total_recorrido += calculo_distancia(aux, firstMap(mapa_original));
+    printf("Distancia final recorrida: %0.f metros\n", estado_actual->total_recorrido);
 
     printf("Ingrese el nombre de la ruta creada: ");
-    char nombre_ruta[30];
     getchar();
-    scanf("%[^\n]s", nombre_ruta);
-    //printf("%s\n", nombre_ruta);
+    scanf("%[^\n]s", estado_actual->nombre);
+    /*printf("%s: ", nombre_ruta);
+    for (int i = 0; i < max; i++){
+        printf("%d - ", estado_actual.ruta[i]);
+    }
+    printf("\n");*/
     printf("----------------------------------\n");
 
-    /* Se guarda en el mapa "estados" el dato "estado_actual" de tipo Estado con clase nombre_ruta   */
-    insertMap(estados, nombre_ruta, &estado_actual);
+    // Se guarda en el mapa "estados" el dato "estado_actual" de tipo Estado con clave "estado_actual->nombre"
+    //printf("%s\n", estado_actual.nombre);
+    insertMap(estados, estado_actual->nombre, estado_actual);
+    /*
+    Estado *iterador_estado = firstMap(estados);
+    while (iterador_estado){
+        printf("%s: ", iterador_estado->nombre);
+        for (int i = 0; i < max; i++){
+            printf("%d", iterador_estado->ruta[i]);
+            if (i + 1 < max) printf(" - ");
+        }
+        iterador_estado = nextMap(estados);
+        printf("\n");
+    }
+    printf("\n");
+    */
 }
 
 //Funcion 5: Entrega una ruta aleatoria
@@ -326,6 +354,35 @@ void rutaaleatoria(Map *mapa_original, int max, Map *estados)
     printf("%d-",p->id);
     p=next(aleatorio.ruta);
   }*/
+}
+
+//Función 6: Se carga el mapa de las rutas por nombre. El usuario elige si hacer un intercambio manual o automático entre 2 entregas.
+
+//Función 7: Se muestran las rutas guardadas de la mejor a la peor.
+void mostrar_rutas(Map* rutas_original, int max){
+    Map *rutas_orden_local = createMap(is_equal_float);
+    setSortFunction(rutas_original, lower_than_float);
+
+    Estado *aux;
+
+    aux = firstMap(rutas_original);
+    while (aux){
+        insertMap(rutas_orden_local, &aux->total_recorrido, aux);
+        //printf("%d %s\n", aux->ruta[0], aux->nombre);
+        aux = nextMap(rutas_original);
+    }
+    printf("-------------- RUTAS --------------\n");
+    aux = firstMap(rutas_orden_local);
+    while (aux){
+        printf("%s | ", aux->nombre);
+        for (int i = 0; i < max; i++){
+            printf("%d", aux->ruta[i]);
+            if (i + 1 < max) printf(" - ");
+        }
+        printf(" | %0.f m.\n", aux->total_recorrido);
+        aux = nextMap(rutas_orden_local);
+    }
+    printf("----------------------------------\n");
 }
 
 void menu()
@@ -395,7 +452,7 @@ float calculo_distancia(Node *cordenada_1, Node *cordena_2)
 }
 
 Map *pasar_mapa(Map* mapa_original){
-  Map *estados = createMap(is_equal_int);
+  Map *entregas = createMap(is_equal_int);
   Node *aux2 = createNode();
   Node *aux = firstMap(mapa_original);
   while (aux)
@@ -403,11 +460,11 @@ Map *pasar_mapa(Map* mapa_original){
     aux2->x = aux->x;
     aux2->y = aux->y;
     aux2->id = aux->id;
-    insertMap(estados,&aux2->id,aux2);
+    insertMap(entregas,&aux2->id,aux2);
     aux2 = createNode();
     aux = nextMap(mapa_original);
   }
-  return estados;
+  return entregas;
 }
 
 //Función para comparar claves de tipo int. Retorna 1 si son iguales
@@ -444,6 +501,13 @@ int lower_than_float(void *key1, void *key2)
 int greater_than_int(void *key1, void *key2)
 {
     if (*(int *)key1 > *(int *)key2)
+        return 1;
+    return 0;
+}
+
+int greater_than_float(void *key1, void *key2)
+{
+    if (*(float *)key1 > *(float *)key2)
         return 1;
     return 0;
 }
