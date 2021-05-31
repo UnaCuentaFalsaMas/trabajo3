@@ -303,43 +303,29 @@ void crearRuta(Map *mapa_original, int max, Map *estados)
 //Funcion 5: Entrega una ruta aleatoria
 void rutaaleatoria(Map *mapa_original, int max, Map *estados)
 {
-    int i, id, bool;
-
-    Node *aux = createNode();
-    Node *p = createNode();
+    int i,j,id,bool;
+ 
+    Node* aux=createNode();
     srand(time(NULL));
-    Estado aleatorio;
-    aleatorio.ruta = create_list();
-
-    for (i = 0; i < max; i++)
-    {
-        if (i > 0)
-        {
-            id = rand() % max + 1;
-            p = first(aleatorio.ruta);
-            while (p)
-            {
-                bool = 0;
-                if (p->id == id)
-                {
-                    id = rand() % max + 1;
-                    p = first(aleatorio.ruta);
-                    bool = 1;
-                }
-                if (bool != 1)
-                {
-                    p = next(aleatorio.ruta);
-                }
-            }
-        }
-        else
-        {
-            id = rand() % max + 1;
-        }
-
-        aux = searchMap(mapa_original, &id);
-        aleatorio.total_recorrido += aux->distancia;
-        push_back(aleatorio.ruta, aux);
+    Estado *aleatorio=(Estado *) malloc (sizeof(Estado) * 1000);;
+    aleatorio->ruta=(int*) malloc(sizeof(int) * max);
+    int arreglo [max+1];
+    
+    for(j=0;j<=max;j++){
+        arreglo[j]=0;
+    }
+    for(i=0;i<max;i++){
+        bool=0;
+        id=rand()%max+1;
+        do{
+            if(arreglo[id]!=1){
+                aleatorio->ruta[i]=id;
+                arreglo[id]=1;
+                bool=1;
+            }else id=rand()%max+1;
+        }while(bool==0);
+        aux=searchMap(mapa_original, &id);
+        aleatorio->total_recorrido += aux->distancia;
     }
 
     printf("\n\nIngrese el nombre de la ruta creada: ");
@@ -348,12 +334,13 @@ void rutaaleatoria(Map *mapa_original, int max, Map *estados)
     scanf("%[^\n]s", nombre_ruta);
     printf("\n\n----------------------------------\n\n");
 
-    insertMap(estados, nombre_ruta, &aleatorio);
-    /*p=first(aleatorio.ruta);
+  
+ 
+  /*printf("%d\n",max);
   for(i=0;i<max;i++){
-    printf("%d-",p->id);
-    p=next(aleatorio.ruta);
-  }*/
+    printf("%d-",aleatorio->ruta[i]);
+  }
+  printf("\n");*/
 }
 
 //Función 6: Se carga el mapa de las rutas por nombre. El usuario elige si hacer un intercambio manual o automático entre 2 entregas.
