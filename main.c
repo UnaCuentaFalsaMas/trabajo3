@@ -31,6 +31,7 @@ void crearRuta(Map *, int, Map *);      //4
 void ruta_aleatoria(Map *, int, Map *); //5
 void mejorar_ruta(Map *, int, Map *);   //6
 void mostrar_rutas(Map*, int);          //7
+void mejor_ruta(Map *,int);                  //8
 
 //Funciones auxiliares
 Node *createNode();
@@ -104,6 +105,7 @@ int main()
             mostrar_rutas(estados, max);
             break;
         case 8:
+            mejor_ruta(mapaUbicaciones,max);
             break;
         case 9:
             printf("Gracias por usar nuestros servicios\n%*cVuelva Pronto\n", 10, ' ');
@@ -489,6 +491,70 @@ void mostrar_rutas(Map* rutas_original, int max){
         aux = nextMap(rutas_orden_local);
     }
     printf("----------------------------------\n");
+}
+
+void mejor_ruta(Map *mapa_original,int max){
+    //METODO CAMINO HAMILTONIANO 
+    Node* nodo_inicial=createNode();
+    Node* auxi = createNode();
+    Node* auxj = createNode();
+    scanf("%d %d",&nodo_inicial->x,&nodo_inicial->y);
+    nodo_inicial->id=0;
+    float M_distancias[max+1][max+1];
+    int array_id[max+1];
+    int i,j,k,b,auxd,auxid;
+
+    for(i=0;i<=max;i++){
+        if(i>0){
+            auxi=searchMap(mapa_original,&i);
+        }else auxi=nodo_inicial;
+        
+        for(j=0;j<=max;j++){
+            if(j>0){
+                auxj=searchMap(mapa_original,&j);
+            }else auxj=nodo_inicial;
+            M_distancias[i][j]=calculo_distancia(auxi,auxj);
+        }
+    }
+    for(k=0;k<=max;k++){
+        M_distancias[k][0]=0;
+    }
+    // Ver relleno matriz inicial
+    /*for(i=0;i<=max;i++){
+        for(j=0;j<=max;j++){
+            printf(" %f -",M_distancias[i][j]);
+        }
+        printf("\n");
+    }*/
+    array_id[0]=0;
+    for(i=0;i<=max;i++){
+        if(i>0) array_id[i]=auxid;
+        b=0;
+        auxd=99999;
+        for(j=0;j<=max;j++){
+            if(M_distancias[array_id[i]][j]!=0 && M_distancias[array_id[i]][j]<auxd){
+                auxd=M_distancias[array_id[i]][j];
+                for(k=0;k<=i;k++){
+                    if(array_id[k]==j){
+                        b=1;
+                        break;
+                    } 
+                }
+                if(b==0){
+                    auxid=j;
+                }
+                b=0;
+            }
+        }
+        for(k=0;k<=max;k++){
+            M_distancias[k][auxid]=0;
+        }
+    }
+    //Orden resultante de los nodos por su id (ruta optima)
+    for(i=0;i<=max;i++){
+        printf("%d - ",array_id[i]);
+    }
+    printf("\n");
 }
 
 void menu()
