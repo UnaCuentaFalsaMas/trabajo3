@@ -8,6 +8,8 @@
 #include "Map.h"
 
 //Estructuras
+
+// Estructura para guardar las coordenadas de las entregas
 typedef struct
 {
     int id;
@@ -16,6 +18,7 @@ typedef struct
     float distancia;
 } Node;
 
+// Estructura para guardar la ruta
 typedef struct
 {
     float total_recorrido;
@@ -24,14 +27,14 @@ typedef struct
 } Estado;
 
 //Funciones del Menu
-Map *read_file(char *, int);            //1
-void distancia_entregas(Map *);         //2
-void entregas_cercanas(Map *);          //3
-void crearRuta(Map *, int, Map *);      //4
-void ruta_aleatoria(Map *, int, Map *); //5
-void mejorar_ruta(Map *, int, Map *);   //6
-void mostrar_rutas(Map*, int);          //7
-void mejor_ruta(Map *,int, Map *);                  //8
+Map *read_file(char *, int);            //Función 1
+void distancia_entregas(Map *);         //Función 2
+void entregas_cercanas(Map *);          //Función 3
+void crearRuta(Map *, int, Map *);      //Función 4
+void ruta_aleatoria(Map *, int, Map *); //Función 5
+void mejorar_ruta(Map *, int, Map *);   //Función 6
+void mostrar_rutas(Map*, int);          //Función 7
+void mejor_ruta(Map *,int, Map *);      //Función 8
 
 //Funciones auxiliares
 Node *createNode();
@@ -45,8 +48,6 @@ int is_equal_string(void *, void *);
 int lower_than_int(void *, void *);
 int lower_than_float(void *, void *);
 int lower_than_string(void *, void *);
-int greater_than_int(void *, void *);
-int greater_than_float(void *, void *);
 
 //main
 int main()
@@ -157,7 +158,6 @@ Map *read_file(char *nombre, int max)
     {
         fgetc(file);
         num = atoi(lectura);
-        //printf("%d\n", num);
 
         if (cont == 0)
         {
@@ -239,7 +239,6 @@ void entregas_cercanas(Map *mapa_original)
         }
         aux->distancia = trunc(calculo_distancia(nodo, aux));
         insertMap(mapa_distancias, &aux->distancia, aux);
-        //printf("ID: %d | (%d, %d) | %0.f metros\n", aux->id, aux->x, aux->y, aux->distancia);
         aux = nextMap(mapa_original);
     }
 
@@ -283,12 +282,13 @@ void crearRuta(Map *mapa_original, int max, Map *estados)
     scanf("%d", &nodo_inicial->y);
 
     insertMap(mapa_original, &nodo_inicial->id, nodo_inicial);
-    //printf("ID: %d | (%d, %d)\n", nodo_inicial->id, nodo_inicial->x, nodo_inicial->y);
     printf("%d entregas en total\n", max);
     printf("----------------------------------\n");
 
+    //Se muestran las distancias desde el nodo inicial hasta las entregas
     mostrar_distancias(mapa_local, nodo_inicial);
 
+    //Una vez se elija el nodo inicial, el usuario va cambiando de posición y se muestran las distancias desde su posición hasta las otras entregas
     for (int i = 0; i < max; i++)
     {
         printf("Ingrese su proxima parada: ");
@@ -300,13 +300,13 @@ void crearRuta(Map *mapa_original, int max, Map *estados)
             i--;
             continue;
         }else{
+            //Se elimina del mapa local la entrega ya visitada y se guarda su ID en el arreglo ruta
             eraseMap(mapa_local, &id);
             estado_actual->ruta[i] = id;
             estado_actual->total_recorrido += aux->distancia;
         }
 
         mostrar_distancias(mapa_local, aux);
-        //printf("%d\n", aux->id);
     }
     printf("----------------------------------\n");
     printf("Todas las ciudades visitadas. Volviendo al punto de origen.\n");
@@ -316,29 +316,10 @@ void crearRuta(Map *mapa_original, int max, Map *estados)
     printf("Ingrese el nombre de la ruta creada: ");
     getchar();
     scanf("%[^\n]s", estado_actual->nombre);
-    /*printf("%s: ", nombre_ruta);
-    for (int i = 0; i < max; i++){
-        printf("%d - ", estado_actual.ruta[i]);
-    }
-    printf("\n");*/
     printf("----------------------------------\n");
 
     // Se guarda en el mapa "estados" el dato "estado_actual" de tipo Estado con clave "estado_actual->nombre"
-    //printf("%s\n", estado_actual.nombre);
     insertMap(estados, estado_actual->nombre, estado_actual);
-    /*
-    Estado *iterador_estado = firstMap(estados);
-    while (iterador_estado){
-        printf("%s: ", iterador_estado->nombre);
-        for (int i = 0; i < max; i++){
-            printf("%d", iterador_estado->ruta[i]);
-            if (i + 1 < max) printf(" - ");
-        }
-        iterador_estado = nextMap(estados);
-        printf("\n");
-    }
-    printf("\n");
-    */
 }
 
 //Funcion 5: Entrega una ruta aleatoria
@@ -352,9 +333,12 @@ void ruta_aleatoria(Map *mapa_original, int max, Map *estados)
     srand(time(NULL));
     int arreglo [max+1];
     
+    //Se verifica con un arreglo que no se vuelva a visitar la misma ID
     for(j=0;j<=max;j++){
         arreglo[j]=0;
     }
+
+    //Se ingresa una ID aleatoria en la ruta, esta no se repite debido al arreglo verificado
     for(i=0;i<max;i++){
         bool=0;
         id=rand()%max+1;
@@ -387,24 +371,7 @@ void ruta_aleatoria(Map *mapa_original, int max, Map *estados)
     getchar();
     scanf("%[^\n]s", aleatorio->nombre);
     printf("----------------------------------\n");
-    
-   /*
-   i = aleatorio->ruta[0];
-   j = aleatorio->ruta[1];
-   aux = searchMap(mapa_original, &i);
-   Node *aux2 = searchMap(mapa_original, &j);
-   printf("%0.f\n", calculo_distancia(aux, aux2));
-   */
    insertMap(estados, aleatorio->nombre, aleatorio);
-
-  
-  
-  /*printf("%s: ", aleatorio->nombre);
-  for(i=0;i<max;i++){
-    printf("%d-",aleatorio->ruta[i]);
-  }
-  printf("\n");
-  */
 }
 
 //Función 6: Se carga el mapa de las rutas por nombre. El usuario elige si hacer un intercambio manual o automático entre 2 entregas.
@@ -419,15 +386,15 @@ void mejorar_ruta(Map *mapa_original, int max, Map *estados){
     printf("Ingrese el nombre de la ruta a mejorar: ");
     scanf("%[^\n]s", estado_mejorado->nombre);
     Estado *estado_a_mejorar = searchMap(estados, estado_mejorado->nombre);
-    //printf("%s\n", lectura);
 
     printf("--------------- RUTA --------------\n");
-    
 
+    //Se copia la ruta original para no perderla por si la mejora no es mejor (xd)
     for (i = 0; i < max; i++){
         estado_mejorado->ruta[i] = estado_a_mejorar->ruta[i];
     }
 
+    //Se muestra la ruta escogida a mejorar
     for (i = 0; i < max; i++){
         printf("%d", estado_mejorado->ruta[i]);
         if (i + 1 < max) printf(" - ");
@@ -444,6 +411,7 @@ void mejorar_ruta(Map *mapa_original, int max, Map *estados){
         scanf("%d", &id2);
     }
     else{
+        //Se escogen dos entregas aleatorias a intercambiar
         id1 = rand()%max + 1;
         do{
             id2 = rand()%max + 1;
@@ -452,21 +420,13 @@ void mejorar_ruta(Map *mapa_original, int max, Map *estados){
         printf("Se intercambiaran los ordenes de la entrega %d y la entrega %d.\n", id1, id2);
     }
 
-    /*
-    if (id1 < id2){
-        aux = id1;
-        id1 = id2;
-        id2 = aux;
-    }
-    */
-
+    //Se intercambia el orden de las entregas
     for (int i = 0; i < max; i++){
         if (estado_mejorado->ruta[i] == id1){
             j = i;
             break;
         }
     }
-
     for (int i = 0; i < max; i++){
         if (estado_mejorado->ruta[i] == id2){
             k = i;
@@ -478,6 +438,7 @@ void mejorar_ruta(Map *mapa_original, int max, Map *estados){
     estado_mejorado->ruta[j] = estado_mejorado->ruta[k];
     estado_mejorado->ruta[k] = aux;
 
+    //Se calcula la distancia de la nueva ruta
     estado_mejorado->total_recorrido = 0;
     estado_mejorado->total_recorrido += calculo_distancia(firstMap(mapa_original), searchMap(mapa_original, &estado_mejorado->ruta[0]));
     
@@ -492,6 +453,7 @@ void mejorar_ruta(Map *mapa_original, int max, Map *estados){
     }
     printf("\nDistancia recorrida en ruta mejorada: %0.f metros\n", estado_mejorado->total_recorrido);
 
+    //Si la nueva ruta es mejor, se borra la ruta sain mejorar del mapa de rutas y se ingresa la ruta mejorada
     if (estado_mejorado->total_recorrido < estado_a_mejorar->total_recorrido){
         eraseMap(estados, estado_mejorado->nombre);
         insertMap(estados, estado_mejorado->nombre, estado_mejorado);
@@ -505,15 +467,15 @@ void mejorar_ruta(Map *mapa_original, int max, Map *estados){
 
 //Función 7: Se muestran las rutas guardadas de la mejor a la peor.
 void mostrar_rutas(Map* rutas_original, int max){
+    //Se define un mapa ordenado de menor a mayor con clave igual a la distancia total de la ruta
     Map *rutas_orden_local = createMap(is_equal_float);
     setSortFunction(rutas_orden_local, lower_than_float);
 
     Estado *aux;
-
+    //Se copian los contenidos del mapa ordenado según el nombre de las rutas al mapa que los ordena por distancia
     aux = firstMap(rutas_original);
     while (aux){
         insertMap(rutas_orden_local, &aux->total_recorrido, aux);
-        //printf("%d %s\n", aux->ruta[0], aux->nombre);
         aux = nextMap(rutas_original);
     }
     printf("-------------- RUTAS --------------\n");
@@ -566,15 +528,6 @@ void mejor_ruta(Map *mapa_original,int max, Map *estados){
     for(k=0;k<=max;k++){
         M_distancias[k][0]=0;
     }
-    // Ver relleno matriz inicial
-    /*
-    for(i=0;i<=max;i++){
-        for(j=0;j<=max;j++){
-            printf(" %f -",M_distancias[i][j]);
-        }
-        printf("\n");
-    }
-    */
 
     array_id[0]=0;
     for(i=0;i<=max;i++){
@@ -602,7 +555,7 @@ void mejor_ruta(Map *mapa_original,int max, Map *estados){
     }
 
 
-    //Orden resultante de los nodos por su id (ruta optima)
+    //Orden resultante de los nodos por su ID (ruta óptima)
     printf("Ruta optima: ");
     for(i=1;i<max;i++){
         printf("%d - ",array_id[i]);
@@ -633,11 +586,9 @@ void mejor_ruta(Map *mapa_original,int max, Map *estados){
 
     insertMap(estados,estado_actual->nombre,estado_actual);
     printf("RUTA GUARDADA EXITOSAMENTE\n");
-
-
-
 }
 
+//Display del programa
 void menu()
 {
     printf("1. Importar archivo\n");
@@ -657,6 +608,7 @@ Node *createNode()
     return n;
 }
 
+//Función que muestra las distancias entre un punto y las entregas
 void mostrar_distancias(Map *mapa_local, Node *nodo_referencia)
 {
     Node *aux;
@@ -674,7 +626,6 @@ void mostrar_distancias(Map *mapa_local, Node *nodo_referencia)
         }
         aux->distancia = trunc(calculo_distancia(nodo_referencia, aux));
         insertMap(mapa_distancias, &aux->distancia, aux);
-        //printf("ID: %d | (%d, %d) | %0.f metros\n", aux->id, aux->x, aux->y, aux->distancia);
         aux = nextMap(mapa_local);
     }
 
@@ -695,6 +646,7 @@ void mostrar_distancias(Map *mapa_local, Node *nodo_referencia)
     return;
 }
 
+//Función que calcula la distancia entre dos puntos
 float calculo_distancia(Node *cordenada_1, Node *cordena_2)
 {
     float x = cordena_2->x - cordenada_1->x;
@@ -704,6 +656,7 @@ float calculo_distancia(Node *cordenada_1, Node *cordena_2)
     return distancia;
 }
 
+//Función que hace la copia de un mapa
 Map *pasar_mapa(Map* mapa_original){
   Map *entregas = createMap(is_equal_int);
   Node *aux2 = createNode();
@@ -728,6 +681,7 @@ int is_equal_int(void *key1, void *key2)
     return 0;
 }
 
+//Función para comparar claves de tipo float. Retorna 1 si son iguales
 int is_equal_float(void *key1, void *key2)
 {
     if (*(float *)key1 == *(float *)key2)
@@ -743,6 +697,7 @@ int lower_than_int(void *key1, void *key2)
     return 0;
 }
 
+//Función para comparar claves de tipo float. Retorna 1 si key1 < key2
 int lower_than_float(void *key1, void *key2)
 {
     if (*(float *)key1 < *(float *)key2)
@@ -750,21 +705,7 @@ int lower_than_float(void *key1, void *key2)
     return 0;
 }
 
-//Función para comparar claves de tipo int. Retorna 1 si key1 > key2
-int greater_than_int(void *key1, void *key2)
-{
-    if (*(int *)key1 > *(int *)key2)
-        return 1;
-    return 0;
-}
-
-int greater_than_float(void *key1, void *key2)
-{
-    if (*(float *)key1 > *(float *)key2)
-        return 1;
-    return 0;
-}
-
+//Función para comparar claves de tipo string. Retorna 1 si son iguales
 int is_equal_string(void *key1, void *key2)
 {
     if (strcmp((char *)key1, (char *)key2) == 0)
@@ -772,6 +713,7 @@ int is_equal_string(void *key1, void *key2)
     return 0;
 }
 
+//Función para comparar claves de tipo string. Retorna 1 si key1 < key2
 int lower_than_string(void *key1, void *key2)
 {
     if (strcmp((char *)key1, (char *)key2) < 0)
