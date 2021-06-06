@@ -56,6 +56,7 @@ int main()
     setSortFunction(estados, lower_than_string);
     int max;
     int opcion;
+    int verificar = 0;
     do
     {
         menu();
@@ -70,41 +71,62 @@ int main()
             printf("Ingrese la cantidad de datos a leer\n");
             scanf("%i", &max);
             mapaUbicaciones = read_file(nombre_archivo, max);
-            /*
-      Node *aux = firstMap(mapaUbicaciones);
-      while (aux){
-      printf("%d %d %d\n", aux->id, aux->x, aux->y);
-      aux = nextMap(mapaUbicaciones);
-      }
-      */
-
+            verificar = 1;
             break;
         case 2:
+            if(verificar == 0){
+                printf("SELECCIONE LA OPCION 1 PRIMERO\n");
+                printf("------------------------------\n");
+                break;
+            }
             distancia_entregas(mapaUbicaciones);
             break;
         case 3:
+            if(verificar == 0){
+                printf("SELECCIONE LA OPCION 1 PRIMERO\n");
+                printf("------------------------------\n");
+                break;
+            }
             entregas_cercanas(mapaUbicaciones);
             break;
         case 4:
-            crearRuta(mapaUbicaciones, max, estados);
-            /*
-            Node *aux = firstMap(mapaUbicaciones);
-            while (aux){
-            printf("%d %d %d\n", aux->id, aux->x, aux->y);
-            aux = nextMap(mapaUbicaciones);
+            if(verificar == 0){
+                printf("SELECCIONE LA OPCION 1 PRIMERO\n");
+                printf("------------------------------\n");
+                break;
             }
-            */
+            crearRuta(mapaUbicaciones, max, estados);
             break;
         case 5:
+            if(verificar == 0){
+                printf("SELECCIONE LA OPCION 1 PRIMERO\n");
+                printf("------------------------------\n");
+                break;
+            }
             ruta_aleatoria(mapaUbicaciones, max, estados);
             break;
         case 6:
+            if(verificar == 0){
+                printf("SELECCIONE LA OPCION 1 PRIMERO\n");
+                printf("------------------------------\n");
+                break;
+            }
             mejorar_ruta(mapaUbicaciones, max, estados);
             break;
         case 7:
+            if(verificar == 0){
+                printf("SELECCIONE LA OPCION 1 PRIMERO\n");
+                printf("------------------------------\n");
+                break;
+            }
             mostrar_rutas(estados, max);
             break;
         case 8:
+            if(verificar == 0){
+                printf("SELECCIONE LA OPCION 1 PRIMERO\n");
+                printf("------------------------------\n");
+                break;
+            }
             mejor_ruta(mapaUbicaciones,max, estados);
             break;
         case 9:
