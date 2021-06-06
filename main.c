@@ -498,7 +498,10 @@ void mejor_ruta(Map *mapa_original,int max){
     Node* nodo_inicial=createNode();
     Node* auxi = createNode();
     Node* auxj = createNode();
-    scanf("%d %d",&nodo_inicial->x,&nodo_inicial->y);
+    printf("Ingrese coordenada x: ");
+    scanf("%d",&nodo_inicial->x);
+    printf("Ingrese coordenada y: ");
+    scanf("%d",&nodo_inicial->y);
     nodo_inicial->id=0;
     float M_distancias[max+1][max+1];
     int array_id[max+1];
