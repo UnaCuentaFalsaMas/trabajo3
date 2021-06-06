@@ -167,10 +167,25 @@ void distancia_entregas(Map *mapa_local)
     printf("Ingrese la ID de la entrega 1: ");
     scanf("%d", &id);
     aux1 = searchMap(mapa_local, &id);
+    if(aux1 == NULL){
+        printf("Ingrese una ID valida\n");
+        while(aux1 == NULL){
+            scanf("%d", &id);
+            aux1 = searchMap(mapa_local, &id);
+        }
+    }
 
     printf("Ingrese la ID de la entrega 2: ");
     scanf("%d", &id);
     aux2 = searchMap(mapa_local, &id);
+    if(aux2 == NULL){
+        printf("Ingrese una ID valida\n");
+        while(aux2 == NULL){
+            scanf("%d", &id);
+            aux2 = searchMap(mapa_local, &id);
+        }
+    }
+
 
     distancia = calculo_distancia(aux1, aux2);
     printf("La distancia entre la entrega %d y la entrega %d es de %0.f m.\n", aux1->id, aux2->id, distancia);
