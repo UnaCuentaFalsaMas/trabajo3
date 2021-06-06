@@ -31,7 +31,7 @@ void crearRuta(Map *, int, Map *);      //4
 void ruta_aleatoria(Map *, int, Map *); //5
 void mejorar_ruta(Map *, int, Map *);   //6
 void mostrar_rutas(Map*, int);          //7
-void mejor_ruta(Map *,int);                  //8
+void mejor_ruta(Map *,int, Map *);                  //8
 
 //Funciones auxiliares
 Node *createNode();
@@ -105,7 +105,7 @@ int main()
             mostrar_rutas(estados, max);
             break;
         case 8:
-            mejor_ruta(mapaUbicaciones,max);
+            mejor_ruta(mapaUbicaciones,max, estados);
             break;
         case 9:
             printf("Gracias por usar nuestros servicios\n%*cVuelva Pronto\n", 10, ' ');
@@ -493,11 +493,18 @@ void mostrar_rutas(Map* rutas_original, int max){
     printf("----------------------------------\n");
 }
 
-void mejor_ruta(Map *mapa_original,int max){
+//Funcion 8: Se guarda la ruta optima
+void mejor_ruta(Map *mapa_original,int max, Map *estados){
+
+    Estado *estado_actual = (Estado *) malloc (sizeof(Estado) * 1000);
+    estado_actual->ruta = (int*) malloc(sizeof(int) * max);
+    estado_actual->total_recorrido = 0;
     //METODO CAMINO HAMILTONIANO 
     Node* nodo_inicial=createNode();
     Node* auxi = createNode();
     Node* auxj = createNode();
+    Node* nodo1 = createNode();
+    Node *nodo2 = createNode();
     printf("Ingrese coordenada x: ");
     scanf("%d",&nodo_inicial->x);
     printf("Ingrese coordenada y: ");
@@ -523,12 +530,15 @@ void mejor_ruta(Map *mapa_original,int max){
         M_distancias[k][0]=0;
     }
     // Ver relleno matriz inicial
-    /*for(i=0;i<=max;i++){
+    /*
+    for(i=0;i<=max;i++){
         for(j=0;j<=max;j++){
             printf(" %f -",M_distancias[i][j]);
         }
         printf("\n");
-    }*/
+    }
+    */
+
     array_id[0]=0;
     for(i=0;i<=max;i++){
         if(i>0) array_id[i]=auxid;
@@ -553,11 +563,42 @@ void mejor_ruta(Map *mapa_original,int max){
             M_distancias[k][auxid]=0;
         }
     }
+
+
     //Orden resultante de los nodos por su id (ruta optima)
-    for(i=0;i<=max;i++){
+    printf("Ruta optima: ");
+    for(i=1;i<max;i++){
         printf("%d - ",array_id[i]);
+        estado_actual->ruta[i - 1] = array_id[i];
     }
-    printf("\n");
+    estado_actual->ruta[i-1] = array_id[i];
+    printf("%d\n",array_id[i]);
+
+    //Guarda el nombre de la ruta
+    strcpy(estado_actual->nombre, "ruta optima");
+
+    i = array_id[1];
+    nodo1 = searchMap(mapa_original,&i);
+    estado_actual->total_recorrido+= calculo_distancia(nodo_inicial,nodo1);
+   
+    for(int cont = 1; cont<max;cont++){
+        i = array_id[cont];
+        j = array_id[cont + 1];
+        nodo1 = searchMap(mapa_original,&i);
+        nodo2 = searchMap(mapa_original,&j);
+        estado_actual->total_recorrido+= calculo_distancia(nodo1,nodo2);
+        nodo1 = createNode();
+        nodo2 = createNode();
+    }
+    //Calcular la vuelta al inicio
+    nodo1 = searchMap(mapa_original,&j);
+    estado_actual->total_recorrido+= calculo_distancia(nodo1,nodo_inicial);
+
+    insertMap(estados,estado_actual->nombre,estado_actual);
+    printf("RUTA GUARDADA EXITOSAMENTE\n");
+
+
+
 }
 
 void menu()
