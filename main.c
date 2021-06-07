@@ -68,7 +68,8 @@ int main()
         case 1:
 
             printf("Ingrese el nombre del archivo\n");
-            scanf("%s", nombre_archivo);
+            getchar();
+            scanf("%[^\n]s", nombre_archivo);
             printf("Ingrese la cantidad de datos a leer\n");
             scanf("%i", &max);
             mapaUbicaciones = read_file(nombre_archivo, max);
